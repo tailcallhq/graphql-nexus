@@ -1,0 +1,122 @@
+schema
+  @server(
+    baseURL: "http://jsonplaceholder.typicode.com"
+    enableGraphiql: "/graphiql"
+  ) {
+  query: Query
+}
+
+type Query {
+  users: [User] @http(path: "/users")
+  user(id: Int): UserQuery @http(path: "/users/{{args.id}}}}")
+  posts: [Post] @http(path: "/posts")
+  comments: [Comment] @http(path: "/comments")
+  albums: [Album] @http(path: "/albums")
+  todos: [Todo] @http(path: "/todos")
+  photos: [Photo] @http(path: "/photos")
+}
+
+interface IUser {
+  id: Int!
+  name: String!
+  username: String!
+  email: String!
+  address: Address
+  phone: String
+  website: String
+  company: Company
+}
+
+type User implements IUser {
+  id: Int!
+  name: String!
+  username: String!
+  email: String!
+  address: Address
+  phone: String
+  website: String
+  company: Company
+}
+
+type UserQuery implements IUser {
+  id: Int!
+  name: String!
+  username: String!
+  email: String!
+  address: Address
+  phone: String
+  website: String
+  company: Company
+  posts: [Post] @http(path: "/users/{{value.id}}/posts")
+  comments: [Comment] @http(path: "/users/{{value.id}}/comments")
+  albums: [Album] @http(path: "/users/{{value.id}}/albums")
+  todos: [Todo] @http(path: "/users/{{value.id}}/todos")
+  photos: [Photo] @http(path: "/users/{{value.id}}/photos")
+}
+
+type Address {
+  street: String!
+  suite: String!
+  city: String!
+  zipcode: String!
+  geo: Geo
+}
+
+type Geo {
+  lat: String!
+  lng: String!
+}
+
+type Company {
+  name: String!
+  catchPhrase: String!
+  bs: String!
+}
+
+type Post {
+  id: Int!
+  userId: Int!
+  title: String!
+  body: String!
+  user: User
+    @http(
+      path: "/users"
+      query: {id: "{{parent.value.userId}}"}
+      matchPath: ["id"]
+      matchKey: "userId"
+    )
+  comments: [Comment] @http(path: "/posts/{{value.id}}/comments")
+}
+
+type Comment {
+  id: Int!
+  name: String!
+  postId: Int!
+  email: String! @modify(name: "emailAddress")
+  body: String!
+  post: Post @http(path: "/posts/{{value.postId}}")
+}
+
+type Album {
+  id: Int!
+  title: String!
+  userId: String!
+  user: User @http(path: "/users/{{value.userId}}")
+  photos: [Photo] @http(path: "/albums/{{value.id}}/photos")
+}
+
+type Photo {
+  id: Int!
+  title: String!
+  url: String!
+  thumbnailUrl: String! @modify(omit: true)
+  album: Album @http(path: "/albums/{{value.id}}")
+}
+
+type Todo {
+  id: Int!
+  userId: Int!
+  title: String!
+  completed: Boolean!
+  user: User @http(path: "/users/{{value.userId}}")
+}
